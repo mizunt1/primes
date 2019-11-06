@@ -1,25 +1,23 @@
 /** A sequential implementation of the Sieve of Eratosthenes */
+import java.util.concurrent.atomic.AtomicInteger
 
 object Sieve{
 
   def main(args: Array[String]) = {
     assert(args.length == 1, "must have one argument")
 
-
+    val t0 = java.lang.System.currentTimeMillis()
     val N = args(0).toInt // number of primes required
     // array will hold values with type Int and will be len N
-    val primes = new Array[Int](N) // will hold the primes
     // first prime on the list is 2
-    primes(0) = 2
-    var nextSlot = 1 // next free slot in primes
-    var next = 3 // next candidate prime to consider
     
-    def sequential(nextSlotIn:Int) = {
-      val t0 = java.lang.System.currentTimeMillis()
-      print(t0)
-      var nextSlot = nextSlotIn
-      while(nextSlot<N)
-      {
+    
+    def sequential(num_primes:Int) = {
+      val primes = new Array[Int](num_primes) // will hold the primes
+      primes(0) = 2
+      var next = 3 // next candidate prime to consider
+      var nextSlot = 1 // next free slot in primes
+      while(nextSlot<num_primes){
         // Test if next is prime;
         // invariant: next is coprime with primes[0..i) && p = primes(i)
         var i = 0; var p = primes(i)
@@ -29,8 +27,8 @@ object Sieve{
         // if
 
         while(p*p<=next && next%p != 0){ i += 1; p = primes(i) }
-        if(p*p>next)
-        { // next is prime
+        if(p*p>next){
+          // next is prime
           // add element to primes array and start again at var i = 0, primes (i) = 2
           // but this time with a new value of next incremented by 1
           primes(nextSlot) = next; nextSlot += 1
@@ -44,6 +42,19 @@ object Sieve{
       println("Time taken: "+(java.lang.System.currentTimeMillis()-t0))
       // About 2.7 secs for N = 1,000,000; answer: 15,485,863
     }
-    sequential(nextSlot)
+
+    def concurrent(num_primes:Int) = {
+      val primes = new AtomicIntegerArray(num_primes)
+      val working_on = new AtomicIntegerArray(num_threads)
+      var nextSlot = nextSlotIn
+      // not sure why its val, not sure if its correct
+      val next = new AtomicInteger()
+      while(nextSlot < N){
+        var i = 0
+
+
+    }}
+
+    sequential(N)
   }
 }
