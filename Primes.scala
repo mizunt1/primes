@@ -53,7 +53,6 @@ object Sieve{
       // ie.e thread one is working on 1, thread 2 is working on 3
       val primes_filled = new AtomicInteger(1)
       val next = new AtomicInteger(3)
-      val must_wait = True
       // next is the next prime to consider
       // nextSlot is the next free index in the array of primes
       def worker(){
@@ -63,26 +62,32 @@ object Sieve{
           var p = primes.get(i);
           //while there is a number in working_on where number**2 is smaller
           //then next, it will remain in this loop 
-          while(j < (num_threads - 1){
+          while(j < (num_threads - 1)){
             // reset counter j to zero if problem value is found.
             // counter will only reach num threads when all items in working on 
             // are non problem values.
-            if(working_on[j].get * working_on[j].get < next){j=0}
+            if(working_on.get(j) * working_on.get(j) < next.get()){j=0}
             j += 1
           }
-          while(p*p <=next && next%p != 0){i += 1; p = primes.get(i)}
-          if (p*p>next){
+          while(p*p <=next.get() && next.get()%p != 0){i += 1; p = primes.get(i)};
+          var k = 0
+          if (p*p>next.get()){
             // fill the primes array
-            var to_save = primes[0].getAndUpdate(next);
-            while(k< primes_filled){
-              if(to_save > primes[k]){k+=1};
-              to_save = primes[k].getAndUpdate(to_save);
-              k += 1;
+            var to_save = primes.get(0)
+            while(k< primes_filled.get()){
+              if(to_save > primes.get(k)){k+=1}
+              to_save = primes.getAndSet(k, to_save)
+              k += 1
             }
             primes_filled.getAndIncrement()
           }
-            next.getAndIncrement()
-          }
-        }}}
+          next.getAndIncrement();
+          
         }
-sequential(N)
+      }
+      ox.cads.util.ThreadUtil.runSystem(num_workers, worker)
+    }
+       
+    concurrent(N)
+  }
+}
