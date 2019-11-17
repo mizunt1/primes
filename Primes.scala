@@ -46,40 +46,64 @@ object Sieve{
     }
 
     def concurrent(num_primes:Int) = {
+      print("start concurrent")
       val num_workers = 1
       val num_threads = 1
       val primes = new AtomicIntegerArray(num_primes)
+      primes.set(0,2)
       val working_on = new AtomicIntegerArray(num_threads)
       // ie.e thread one is working on 1, thread 2 is working on 3
       val primes_filled = new AtomicInteger(1)
       val next = new AtomicInteger(3)
       // next is the next prime to consider
       // nextSlot is the next free index in the array of primes
+      println("start work0")
       def worker(){
+        println("start work")
         while(primes_filled.get() < num_primes){
+          println("inwhile")
           var i = 0;
           var j = 0;
           var p = primes.get(i);
           //while there is a number in working_on where number**2 is smaller
           //then next, it will remain in this loop 
           while(j < (num_threads - 1)){
+            println("inwhile2")
             // reset counter j to zero if problem value is found.
             // counter will only reach num threads when all items in working on 
             // are non problem values.
             if(working_on.get(j) * working_on.get(j) < next.get()){j=0}
+            println("in if")
             j += 1
+            println("in if 2")
           }
-          while(p*p <=next.get() && next.get()%p != 0){i += 1; p = primes.get(i)};
+          println("out if")
+          println("next.get", next.get())
+          println("primes .get i", primes.get(i))
+          println("state of primes", primes.get(0), primes.get(1), primes.get(2))
+          while(p*p <=next.get() && next.get()%p != 0){i += 1; println("what is next", next.get()); println("what is p", primes.get(i));println("what is i", i); p = primes.get(i)};
+          println("inwhile3")
           var k = 0
+          println("p**2", p*p)
+          println("next get", next.get())
           if (p*p>next.get()){
             // fill the primes array
-            var to_save = primes.get(0)
-            while(k< primes_filled.get()){
-              if(to_save > primes.get(k)){k+=1}
-              to_save = primes.getAndSet(k, to_save)
+            var to_save = next.get()
+            while(k < primes_filled.get()+1){
+              println("inwhile4")
+              println("primes.get(k)", primes.get(k))
+              if(primes.get(k) > to_save){to_save = primes.getAndSet(k, to_save); k+=1}
+              println("k in while 4 ", k)
+              println("primes_filled", primes_filled.get())
+              // to save is the number currently not in the array which
+              // will be placed in the array at the next iteration
+              // when the prime is placed in the right place, increment k by extra one,
+              // otherwise, just carry on
+              println("primes after", primes.get(k))
               k += 1
+
             }
-            primes_filled.getAndIncrement()
+                        primes_filled.getAndIncrement()
           }
           next.getAndIncrement();
           
