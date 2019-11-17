@@ -1,6 +1,8 @@
 /** A sequential implementation of the Sieve of Eratosthenes */
 import java.util.concurrent.atomic.AtomicInteger
 
+import java.util.concurrent.atomic.AtomicIntegerArray
+
 object Sieve{
 
   def main(args: Array[String]) = {
@@ -44,17 +46,43 @@ object Sieve{
     }
 
     def concurrent(num_primes:Int) = {
+      val num_workers = 1
+      val num_threads = 1
       val primes = new AtomicIntegerArray(num_primes)
       val working_on = new AtomicIntegerArray(num_threads)
-      var nextSlot = nextSlotIn
-      // not sure why its val, not sure if its correct
-      val next = new AtomicInteger()
-      while(nextSlot < N){
-        var i = 0
-
-
-    }}
-
-    sequential(N)
-  }
-}
+      // ie.e thread one is working on 1, thread 2 is working on 3
+      val primes_filled = new AtomicInteger(1)
+      val next = new AtomicInteger(3)
+      val must_wait = True
+      // next is the next prime to consider
+      // nextSlot is the next free index in the array of primes
+      def worker(){
+        while(primes_filled.get() < num_primes){
+          var i = 0;
+          var j = 0;
+          var p = primes.get(i);
+          //while there is a number in working_on where number**2 is smaller
+          //then next, it will remain in this loop 
+          while(j < (num_threads - 1){
+            // reset counter j to zero if problem value is found.
+            // counter will only reach num threads when all items in working on 
+            // are non problem values.
+            if(working_on[j].get * working_on[j].get < next){j=0}
+            j += 1
+          }
+          while(p*p <=next && next%p != 0){i += 1; p = primes.get(i)}
+          if (p*p>next){
+            // fill the primes array
+            var to_save = primes[0].getAndUpdate(next);
+            while(k< primes_filled){
+              if(to_save > primes[k]){k+=1};
+              to_save = primes[k].getAndUpdate(to_save);
+              k += 1;
+            }
+            primes_filled.getAndIncrement()
+          }
+            next.getAndIncrement()
+          }
+        }}}
+        }
+sequential(N)
