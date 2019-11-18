@@ -47,11 +47,14 @@ object Sieve{
 
     def concurrent(num_primes:Int) = {
       print("start concurrent")
-      val num_workers = 1
-      val num_threads = 1
+      val num_workers = 3
+      val num_threads = 3
       val primes = new AtomicIntegerArray(num_primes)
       primes.set(0,2)
       val working_on = new AtomicIntegerArray(num_threads)
+      //initalise this array with all Nones
+      var l = 0
+      while(l<num_threads){working_on.set(l, -1); l+=1}
       // ie.e thread one is working on 1, thread 2 is working on 3
       val primes_filled = new AtomicInteger(1)
       val next = new AtomicInteger(3)
@@ -69,14 +72,11 @@ object Sieve{
           //while there is a number in working_on where number**2 is smaller
           //then next, it will remain in this loop 
           while(j < (num_threads - 1)){
-            println("inwhile2")
             // reset counter j to zero if problem value is found.
             // counter will only reach num threads when all items in working on 
             // are non problem values.
-            if(working_on.get(j) * working_on.get(j) < next.get()){j=0}
-            println("in if")
+            if(working_on.get(j) == -1 || working_on.get(j) * working_on.get(j) < next.get()){j=0}
             j += 1
-            println("in if 2")
           }
           println("out if")
           println("next.get", next.get())
@@ -105,7 +105,6 @@ object Sieve{
               // will be placed in the array at the next iteration
               // when the prime is placed in the right place, increment k by extra one,
               // otherwise, just carry on
-              println("primes after", primes.get(k))
               k += 1
 
             }
@@ -113,6 +112,7 @@ object Sieve{
                         primes_filled.getAndIncrement()
           }
           next.getAndIncrement();
+          working_on.set((Thread.currentThread().getId().toInt%num_threads), -1)
 
         }
         var j = 0
