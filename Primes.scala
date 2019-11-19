@@ -1,4 +1,4 @@
-/** A sequential implementation of the Sieve of Eratosthenes */
+//** A sequential implementation of the Sieve of Eratosthenes */
 import java.util.concurrent.atomic.AtomicInteger
 
 import java.util.concurrent.atomic.AtomicIntegerArray
@@ -47,8 +47,8 @@ object Sieve{
 
     def concurrent(num_primes:Int) = {
       print("start concurrent")
-      val num_workers = 3
-      val num_threads = 3
+      val num_workers = 10
+      val num_threads = 10
       val primes = new AtomicIntegerArray(num_primes)
       primes.set(0,2)
       val working_on = new AtomicIntegerArray(num_threads)
@@ -63,20 +63,26 @@ object Sieve{
       println("start work0")
       def worker(){
         println("start work")
+        next_working = next.getAndIncrement()
         working_on.set((Thread.currentThread().getId().toInt%num_threads), next.get())
         while(primes_filled.get() < num_primes){
-          println("inwhile")
+          println("%%%%%%%inwhile%%%%%%%%")
+          println("inwhile 1 primes filled", primes_filled.get())
+          println("num pries", num_primes)
           var i = 0;
           var j = 0;
           var p = primes.get(i);
           //while there is a number in working_on where number**2 is smaller
           //then next, it will remain in this loop 
+          var y = 0
           while(j < (num_threads - 1)){
             // reset counter j to zero if problem value is found.
             // counter will only reach num threads when all items in working on 
             // are non problem values.
-            if(working_on.get(j) == -1 || working_on.get(j) * working_on.get(j) < next.get()){j=0}
+            if(working_on.get(j) == -1){}
+            else if(working_on.get(j) * working_on.get(j) < next.get()){j=0; println("working on", working_on.get(0), working_on.get(1), working_on.get(2)); y +=1}
             j += 1
+          if(y>10){System.exit(1)}
           }
           println("out if")
           println("next.get", next.get())
@@ -90,10 +96,14 @@ object Sieve{
           if (p*p>next.get()){
             // fill the primes array
             var saved = next.get()
-            while(k <= primes_filled.get()){
+            println("k before", k)
+            println("primesfilled before", primes_filled.get())
+            //HACKY!!!!!
+            while(k <= primes_filled.get() && primes_filled.get <= num_primes){
               println("******inwhile4******")
               print("what is k", k)
-              print("what is state of primes", primes.get(9))
+              print("primes filled", primes_filled.get())
+              print("num primes", num_primes)
               if(k==num_primes){println("hello")}
               else if(primes.get(k) > next.get()|| primes.get(k)==0){saved = primes.getAndSet(k, saved)}
               println("what is k ", k)
@@ -113,11 +123,15 @@ object Sieve{
           }
           next.getAndIncrement();
           working_on.set((Thread.currentThread().getId().toInt%num_threads), -1)
+          var u = 0
+          println("working_on")
+          while(u < num_threads){println(working_on.get(u)); u+=1}
 
         }
         var j = 0
+        println("printing primes")
         while(j < num_primes){println(primes.get(j)); j+=1}
-        
+        println("end of primes")
       }
       ox.cads.util.ThreadUtil.runSystem(num_workers, worker)
     }
