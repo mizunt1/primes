@@ -47,7 +47,6 @@ object Sieve{
 
     def concurrent(num_primes:Int) = {
       print("start concurrent")
-      val num_workers = 5
       val num_threads = 5
       val primes = new AtomicIntegerArray(num_primes)
       primes.set(0,2)
@@ -57,67 +56,68 @@ object Sieve{
       while(l<num_threads){working_on.set(l, -1); l+=1}
       // ie.e thread one is working on 1, thread 2 is working on 3
       val primes_filled = new AtomicInteger(1)
-      val next = new AtomicInteger(2)
+      val next_working = new AtomicInteger(2)
       // next is the next prime to consider
       // nextSlot is the next free index in the array of primes
       println("start work0")
       def worker(){
         println("start work")
-
-
         while(primes_filled.get() < num_primes){
-          var next_working = next.getAndIncrement()
-          next_working = next.get()
-          println("next working", next_working)
-          working_on.set((Thread.currentThread().getId().toInt%num_threads), next_working)
+
+          next_working.getAndIncrement()
+          val next_prime = next_working.get()
+          println("next working", next_prime)
+          working_on.set((Thread.currentThread().getId().toInt%num_threads), next_prime)
           println("%%%%%%%inwhile%%%%%%%%")
           println("inwhile 1 primes filled", primes_filled.get())
-          println("num pries", num_primes)
-          var i = 0;
-          var j = 0;
-          var p = primes.get(i);
+
           //while there is a number in working_on where number**2 is smaller
           //then next, it will remain in this loop 
-          while(j <= (num_threads - 1)){
-            println("in while whats working")
-            
-            println("working on", working_on.get(0), working_on.get(1), working_on.get(2), working_on.get(3), working_on.get(4))
-            println("next_wokring", next_working)
-              // reset counter j to zero if problem value is found.
-            // counter will only reach num threads when all items in working on 
-            // are non problem values.
-            if(working_on.get(j) == -1){j+=1}
-
-            else if(working_on.get(j) * working_on.get(j) < next_working){j=0; println("working on", working_on.get(0), working_on.get(1), working_on.get(2), working_on.get(3), working_on.get(4), "j=", j, "nworking", next_working)}
-            else {j+=1}
+          // HURDLE ONE ///
+          // checking that we can check is this number is prime
+          // spin until that smaller prime is no longer in working on.
+          var j = 0;
+          while(j< num_threads){
+            while(working_on.get(j) != -1 && (working_on.get(j) * working_on.get(j)) <= next_prime){}
+            println("ok to work through this num", working_on.get(j),"for", next_prime)
+            j += 1
           }
-          println("out if")
-          print("working on after out")
-          println("working on", working_on.get(0), working_on.get(1), working_on.get(2), working_on.get(3), working_on.get(4))
-
-          println("next.get", next_working)
-          println("primes .get i", primes.get(i))
+          // value no longer in working on array
+          println("out if loop for next working value",next_prime)
+          println(working_on.get(0),working_on.get(1), working_on.get(2))
+          println("next.get", next_prime)
           println("state of primes", primes.get(0), primes.get(1), primes.get(2))
-          while(p*p <=next_working && next_working%p != 0){i += 1; println("what is next", next_working); println("what is p", primes.get(i));println("what is i", i); p = primes.get(i)}
-          println("inwhile3")
-          var k = 1
-          println("p**2", p*p)
-//          println("next get", next_working)
-          if (p*p>next_working){
-            // fill the primes array
-            var saved = next_working
+
+          // HURDLE TWO check whether next_working is a prime.
+          var i = 0;
+          var p = primes.get(i);
+          // p!=-0 added for the case when for example, primes=[2,5,0,0], a possible configuration of primes array
+          // three has not yet been added yet
+          while(p != 0 && (p*p <=next_prime && next_prime%p != 0)){i += 1; println("what is next", next_prime); println("what is p", primes.get(i));println("what is i", i); p = primes.get(i)}
+
+          if (p*p>next_prime || p == 0){
+            print("next working, this one is allowed to be appended", next_prime)
+            // HURDLE THREE
+            // fill the primes array CORRECTLY
+            var k = 0
+            var saved = next_prime
             println("k before", k)
             println("primesfilled before", primes_filled.get())
-            //HACKY!!!!!
-            while(k <= primes_filled.get() && primes_filled.get <= num_primes){
+            // k will scan through the primes array to shuffle numbers
+            // This while loop fills the array
+            while(k < num_primes){
               println("******inwhile4******")
               print("what is k", k)
+              print("which prime are we fitting", saved)
+              println("state of primes while filling", primes.get(0), primes.get(1), primes.get(2))
               print("primes filled", primes_filled.get())
               print("num primes", num_primes)
-              if(k==num_primes){println("hello")}
-              else if(primes.get(k) > next_working|| primes.get(k)==0){saved = primes.getAndSet(k, saved)}
+              if(primes.get(k)==0){primes.set(k,saved); k+= num_primes}
+              else if(primes.get(k) < next_prime){}
+              else if(primes.get(k) > next_prime){saved = primes.getAndSet(k, saved)}
+              else {}
               println("what is k ", k)
-  //            println("what is next", next_working)
+
               println("primes 0", primes.get(0))
               println("primes_filled", primes_filled.get())
               println("state of primes while filling", primes.get(0), primes.get(1), primes.get(2))
@@ -125,28 +125,27 @@ object Sieve{
               // will be placed in the array at the next iteration
               // when the prime is placed in the right place, increment k by extra one,
               // otherwise, just carry on
+              println("state of prime before incrementing k")
+              var b = 0
+              while(b<num_primes){print(primes.get(b), " ");b+=1}
               k += 1
-
             }
-                          println("state of primes after filling", primes.get(0), primes.get(1), primes.get(2))
-                        primes_filled.getAndIncrement()
+            primes_filled.getAndIncrement()
+            working_on.set((Thread.currentThread().getId().toInt%num_threads), -1)
+            println("working_on")
+            var u = 0
+            while(u < num_threads){println(working_on.get(u)); u+=1}
+            println("state of primes after filling", primes.get(0), primes.get(1), primes.get(2))
           }
-          working_on.set((Thread.currentThread().getId().toInt%num_threads), -1)
-          var u = 0
-          println("working_on")
-          while(u < num_threads){println(working_on.get(u)); u+=1}
-
         }
         var j = 0
         println("printing primes")
         while(j < num_primes){println(primes.get(j)); j+=1}
         println("end of primes")
       }
-      ox.cads.util.ThreadUtil.runSystem(num_workers, worker)
+      ox.cads.util.ThreadUtil.runSystem(num_threads, worker)
     }
        
     concurrent(N)
-  //  var j = 0
-//
   }
 }
