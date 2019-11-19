@@ -47,7 +47,7 @@ object Sieve{
 
     def concurrent(num_primes:Int) = {
       print("start concurrent")
-      val num_threads = 5
+      val num_threads = 10
       val primes = new AtomicIntegerArray(num_primes)
       primes.set(0,2)
       val working_on = new AtomicIntegerArray(num_threads)
@@ -63,7 +63,6 @@ object Sieve{
       def worker(){
         println("start work")
         while(primes_filled.get() < num_primes){
-
           next_working.getAndIncrement()
           val next_prime = next_working.get()
           println("next working", next_prime)
